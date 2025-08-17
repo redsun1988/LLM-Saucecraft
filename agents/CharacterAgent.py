@@ -1,4 +1,5 @@
 from agents.Agent import Agent
+from typing import Any, Optional
 from data.CharacterProfile import CharacterProfile
 from data.CharactersList import CharactersList
 from data.EpisodePlotOutline import EpisodePlotOutline

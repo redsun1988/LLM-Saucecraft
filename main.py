@@ -12,8 +12,7 @@ from managers.ChromaDBManager import ChromaDBManager
 from data.FinalScenarioOutput import FinalScenarioOutput
 from data.MagicSystemDetails import MagicSystemDetails
 from managers.OllamaClient import OllamaClient
-from typing import Optional
-import uuid
+
 
 # --- 7. Оркестратор Сценариев ---
 
@@ -74,12 +73,14 @@ class ScenarioOrchestrator:
 
             # 3. Диалоги
             scene_desc = f"Сцена действия для {episode_plot.propp_function}: {episode_plot.description}"
-            scene_dialogue = self.dialogue_agent.process(scene_desc, self.scenario_data.characters, episode_plot, self.scenario_data.dialogue)
+            scene_dialogue = self.dialogue_agent.process(scene_desc, self.scenario_data.characters, episode_plot, self.scenario_data.dialogues)
             
             # 4. Юмор в диалогах
-            humor_suggestions = self.humor_agent.process(scene_dialogue, {"plot_point": episode_plot.dict(), "characters": [c.dict() for c in self.scenario_data.characters]})
+            humor_suggestions = self.humor_agent.process(scene_dialogue, {"plot_point": episode_plot.model_dump(), "characters": [c.model_dump() for c in self.scenario_data.characters]})
             # print(humor_suggestions)
-            for humor_suggestion in humor_suggestions:
+            if len(humor_suggestions) > 0:
+                humor_suggestion = humor_suggestions[0]
+            
                 if humor_suggestion:
                     # Просто применяем первое попавшееся улучшение для демонстрации
                     if len(scene_dialogue.dialogue) > 0 and humor_suggestion.original_line in [d.line for d in scene_dialogue.dialogue]:
@@ -88,11 +89,11 @@ class ScenarioOrchestrator:
                                 scene_dialogue.dialogue[d_idx].line = humor_suggestion.humorous_version
                                 print(f"Диалог улучшен юмором: '{humor_suggestion.original_line}' -> '{humor_suggestion.humorous_version}'")
                                 break
-            self.scenario_data.dialogue.append(scene_dialogue)
+            self.scenario_data.dialogues.append(scene_dialogue)
 
             # 5. Консистентность
             consistency_report = self.consistency_agent.process(
-                {"episode": episode_plot.dict(), "characters_in_dialogue": scene_dialogue.dialogue},
+                {"episode": episode_plot.model_dump(), "characters_in_dialogue": [r.model_dump() for r in scene_dialogue.dialogue]},
                 self.scenario_data.characters
             )
             if not consistency_report.is_consistent:
@@ -129,13 +130,13 @@ if __name__ == "__main__":
     # ollama run deepseek-r1:32b # Это нужно запустить вручную в терминале перед стартом скрипта
     print("Инициализация Ollama клиента и ChromaDB. Убедитесь, что Ollama сервер запущен и модель deepseek-r1:32b загружена.")
     
-    orchestrator = ScenarioOrchestrator(model="deepseek-r1:7b ")
+    orchestrator = ScenarioOrchestrator(model="deepseek-r1:7b")
     
     # Задаем начальный вектор сюжета
     initial_story_idea = "История о молодом парне, который хочет стать сильнейшим охотником на демонов, чтобы отомстить за свою семью, но обнаруживает, что демоны не всегда такие, какими кажутся."
     
     # Генерируем 3 эпизода для примера
-    final_scenario = orchestrator.generate_full_scenario(initial_story_idea, num_episodes=5)
+    final_scenario = orchestrator.generate_full_scenario(initial_story_idea, num_episodes=2)
     
     print("\n--- Итоговый сгенерированный сценарий ---")
     print(final_scenario)

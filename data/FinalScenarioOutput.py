@@ -1,12 +1,11 @@
-from pydantic import BaseModel, Field
-from CharacterProfile import CharacterProfile
-from EpisodePlotOutline import EpisodePlotOutline
-from MagicSystemDetails import MagicSystemDetails
-from data.PlotTwistSuggestion import PlotTwistSuggestion
-from data.SceneDialogue import SceneDialogue
-
-
 from typing import List
+from pydantic import BaseModel, Field
+from data.SceneDialogue import SceneDialogue
+from data.CharacterProfile import CharacterProfile
+from data.EpisodePlotOutline import EpisodePlotOutline
+from data.MagicSystemDetails import MagicSystemDetails
+from data.PlotTwistSuggestion import PlotTwistSuggestion
+
 
 
 class FinalScenarioOutput(BaseModel):

@@ -1,9 +1,6 @@
 from agents.Agent import Agent
-from data.FinalScenarioOutput import FinalScenarioOutput
 from managers.OllamaClient import OllamaClient
-
-
-import json
+from data.FinalScenarioOutput import FinalScenarioOutput
 
 
 class FinalFormatterAgent(Agent):
@@ -62,10 +59,10 @@ class FinalFormatterAgent(Agent):
                 scene_dialogue = final_data.dialogues[i]
                 full_script_content += f"  Сцена: {scene_dialogue.scene_description}\n"
 
-                print(scene_dialogue.dialogues)
-                for dialogue_line in scene_dialogue.dialogues:
+                print(scene_dialogue.dialogue)
+                for dialogue_line in scene_dialogue.dialogue:
                     # {'character_name': '...', 'lines': '...'}
-                    full_script_content += f"    {dialogue_line['character_name']}: {dialogue_line['lines']}\n"
+                    full_script_content += f"    {dialogue_line.speaker}: {dialogue_line.line}\n"
             full_script_content += "\n"
 
         # Финальная задача LLM: оформить все в связный текст
@@ -74,7 +71,8 @@ class FinalFormatterAgent(Agent):
             "Используй информацию о названии, логлайне, персонажах, магической системе, эпизодах и диалогах. "
             "Сценарий должен быть на русском языке. "
             "Представь его как законченный документ, готов к ознакомлению."
-            f"Итоговые данные: {json.dumps(final_data.dict(exclude={'final_script_text'}), ensure_ascii=False, indent=2)}"
+            f"Итоговые данные: {full_script_content}"
+            # f"Итоговые данные: {json.dumps(final_data.dict(exclude={'final_script_text'}), ensure_ascii=False, indent=2)}"
         )
 
         prompt = self.generate_prompt(task_description=task, context="Компиляция всех частей в финальный сценарий.")

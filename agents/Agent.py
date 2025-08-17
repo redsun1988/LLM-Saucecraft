@@ -1,5 +1,4 @@
-# --- 5. Базовый класс Агента ---
-
+from typing import Any, Optional
 from managers.OllamaClient import OllamaClient
 
 

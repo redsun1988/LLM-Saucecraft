@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
-from CharacterProfile import CharacterProfile
-
+from data.CharacterProfile import CharacterProfile
 
 class CharactersList(BaseModel):
     items: list[CharacterProfile]

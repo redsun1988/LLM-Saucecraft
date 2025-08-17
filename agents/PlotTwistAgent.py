@@ -1,14 +1,11 @@
+import json
 from agents.Agent import Agent
+from typing import List, Optional
+from managers.OllamaClient import OllamaClient
 from data.CharacterProfile import CharacterProfile
+from managers.ChromaDBManager import ChromaDBManager
 from data.EpisodePlotOutline import EpisodePlotOutline
 from data.PlotTwistSuggestion import PlotTwistSuggestion
-from managers.ChromaDBManager import ChromaDBManager
-from managers.OllamaClient import OllamaClient
-
-
-import json
-from typing import List
-
 
 class PlotTwistAgent(Agent):
     """Агент, отвечающий за добавление сюжетных твистов."""

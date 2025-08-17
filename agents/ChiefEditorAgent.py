@@ -1,5 +1,3 @@
-# --- 6. Специализированные Агенты ---
-
 from agents.Agent import Agent
 from managers.OllamaClient import OllamaClient
 

@@ -1,7 +1,6 @@
-# --- 3. Ollama Client ---
-
+import ollama
 from typing import Any, Optional
-
+from pydantic import BaseModel, Field
 
 class OllamaClient:
     """Клиент для взаимодействия с Ollama LLM."""
@@ -16,17 +15,13 @@ class OllamaClient:
         Мы указываем `format='json'` и инструктируем LLM в промпте генерировать JSON,
         соответствующий Pydantic модели.
         """
-        # response_format = 'json' if format_model else 'text'
-        # response_text = ""
-        # try:
         messages = [{"role": "user", "content": prompt}]
-        # if format_model:
-        #     messages["content"] += (
-        #         f"\n\nПожалуйста, сгенерируйте ответ строго в формате JSON, "
-        #         f"соответствующем следующей Pydantic схеме: {format_model.model_json_schema(indent=2)}"
-        #     )
 
         if format_model:
+            messages["content"] += (
+                f"\n\nПожалуйста, сгенерируйте ответ строго в формате JSON, "
+                f"соответствующем следующей Pydantic схеме: {format_model.model_json_schema(indent=2)}"
+            )
             response_text = self.client.chat(model=self.model, messages=messages, format=format_model.model_json_schema()).message.content
             return format_model.model_validate_json(response_text)
         else:

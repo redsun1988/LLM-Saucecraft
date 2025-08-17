@@ -1,7 +1,5 @@
-# --- 2. ChromaDB Manager ---
-
+import chromadb
 from typing import List
-
 
 class ChromaDBManager:
     """Управляет векторной базой данных ChromaDB для контекста."""

@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
-from HumorEnhancement import HumorEnhancement
-
+from data.HumorEnhancement import HumorEnhancement
 
 class HumorEnhancementList(BaseModel):
     items: list[HumorEnhancement]

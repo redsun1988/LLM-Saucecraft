@@ -1,5 +1,5 @@
+from typing import Any, Optional
 from pydantic import BaseModel, Field
-# --- 1. Pydantic Models для структурированного вывода LLM ---
 
 class EpisodePlotOutline(BaseModel):
     """Модель для описания этапа сюжета согласно функциям Проппа."""
