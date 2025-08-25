@@ -6,3 +6,9 @@ class EpisodePlotOutline(BaseModel):
     propp_function: str = Field(description="Название функции Проппа (например, 'Исходная ситуация')")
     description: str = Field(description="Краткое описание события, соответствующего функции.")
     details: Optional[str] = Field(None, description="Дополнительные детали сюжета для этой функции.")
+    final_text: Optional[str] = Field(None, description="Финальный, отформатированный текст эпизода.")
+
+
+class FinalEpisodePlotResponce(BaseModel):
+    """Модель для описания этапа сюжета согласно функциям Проппа."""
+    final_text: str = Field(description="Финальный, отформатированный текст эпизода.")
