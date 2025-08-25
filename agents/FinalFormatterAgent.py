@@ -1,6 +1,9 @@
 from agents.Agent import Agent
-from managers.OllamaClient import OllamaClient
 from data.FinalScenarioOutput import FinalScenarioOutput
+from managers.OllamaClient import OllamaClient
+
+
+import json
 
 
 class FinalFormatterAgent(Agent):
@@ -74,7 +77,7 @@ class FinalFormatterAgent(Agent):
             f"Итоговые данные: {full_script_content}"
             # f"Итоговые данные: {json.dumps(final_data.dict(exclude={'final_script_text'}), ensure_ascii=False, indent=2)}"
         )
-
+        print(full_script_content)
         prompt = self.generate_prompt(task_description=task, context="Компиляция всех частей в финальный сценарий.")
         final_script = self.client.chat(prompt)
         print("Финальный сценарий скомпилирован.")

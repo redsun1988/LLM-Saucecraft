@@ -11,6 +11,7 @@ from agents.PlotTwistAgent import PlotTwistAgent
 from managers.ChromaDBManager import ChromaDBManager
 from data.FinalScenarioOutput import FinalScenarioOutput
 from data.MagicSystemDetails import MagicSystemDetails
+from agents.EpisodeRefinementAgent import EpisodeRefinementAgent # НОВЫЙ ИМПОРТ
 from managers.OllamaClient import OllamaClient
 
 
@@ -31,6 +32,8 @@ class ScenarioOrchestrator:
         self.humor_agent = HumorAgent(self.ollama_client, self.chroma_db_manager)
         self.critic_agent = CriticAgent(self.ollama_client)
         self.final_formatter_agent = FinalFormatterAgent(self.ollama_client)
+                # НОВЫЙ АГЕНТ: Инициализация агента для финализации эпизода
+        self.episode_refinement_agent = EpisodeRefinementAgent(self.ollama_client)
 
         self.scenario_data = FinalScenarioOutput(
             title="Неизвестный Сёнэн",
@@ -54,22 +57,22 @@ class ScenarioOrchestrator:
         self.scenario_data.magic_system = self.magic_system_agent.process(self.scenario_data.episodes, self.scenario_data.chief_editor_vector)
         
         # Генерируем персонажей
-        self.scenario_data.characters = self.character_agent.process(self.scenario_data.episodes, self.scenario_data.chief_editor_vector, num_characters=4)
+        self.scenario_data.characters = self.character_agent.process(self.scenario_data.episodes, self.scenario_data.chief_editor_vector, self.scenario_data.magic_system, num_characters=4)
         
         # Проходим по эпизодам
         for i in range(num_episodes):
             print(f"\n--- Генерируем Эпизод {i+1} ---")
             # 1. Сюжет
-            episode_plot = self.plot_generator.process(self.scenario_data.chief_editor_vector, i, self.scenario_data.episodes)
-            self.scenario_data.episodes.append(episode_plot)
+            episode_plot = self.plot_generator.process(self.scenario_data.chief_editor_vector, self.scenario_data.magic_system, i, self.scenario_data.episodes)
 
             # 2. Сюжетный твист (возможно)
+            current_twist = None
             if i % 2 == 1: # Добавляем твист в каждом втором эпизоде для примера
-                twist = self.plot_twist_agent.process(self.scenario_data.episodes, self.scenario_data.characters, episode_plot)
-                if twist:
-                    self.scenario_data.plot_twists_applied.append(twist)
+                current_twist = self.plot_twist_agent.process(self.scenario_data.episodes, self.scenario_data.characters, episode_plot)
+                if current_twist:
+                    self.scenario_data.plot_twists_applied.append(current_twist)
                     # Можно было бы здесь добавить логику для LLM по переработке текущего эпизода с учетом твиста
-                    print(f"Применен твист: {twist.description}")
+                    print(f"Применен твист: {current_twist.description}")
 
             # 3. Диалоги
             scene_desc = f"Сцена действия для {episode_plot.propp_function}: {episode_plot.description}"
@@ -102,7 +105,7 @@ class ScenarioOrchestrator:
 
             # 6. Критика
             critic_feedback = self.critic_agent.process(
-                {"episode": episode_plot.dict(), "dialogue": scene_dialogue.dict(), "characters": [c.dict() for c in self.scenario_data.characters]}
+                {"episode": episode_plot.model_dump(), "dialogue": scene_dialogue.model_dump(), "characters": [c.model_dump() for c in self.scenario_data.characters]}
             )
             print(f"Отзыв критика: {critic_feedback.overall_impression}")
             print(f"  Сильные стороны: {', '.join(critic_feedback.strengths)}")
@@ -110,18 +113,33 @@ class ScenarioOrchestrator:
             if critic_feedback.suggestions:
                 print(f"  Предложения: {', '.join(critic_feedback.suggestions)}")
 
-        # 7. Финальное оформление
-        self.scenario_data.title = initial_idea + " - Сёнэн История"
-        logline = f"Эпическая история о мире где используется {self.scenario_data.magic_system.name}"
-        logline += " ".join([f"Где есть герой {c.name}, который стремится к {c.motivation}." for c in  self.scenario_data.characters])
-        logline += " ".join([f"По ходу сюжета герои сталкиваются с {e.description}." for e in  self.scenario_data.episodes])
-        self.scenario_data.logline = logline
+            # НОВЫЙ ШАГ: 7. Финализация текста эпизода
+            # Этот агент собирает все предыдущие данные и генерирует финальный текст для текущего эпизода.
+            print("\n--- Финализация текста эпизода ---")
+            final_episode_text = self.episode_refinement_agent.process(
+                episode_plot=episode_plot,
+                scene_dialogue=scene_dialogue,
+                characters=self.scenario_data.characters, # Передаем всех персонажей для полного контекста
+                plot_twist=current_twist,
+                critic_feedback=critic_feedback,
+                consistency_report=consistency_report
+                # humor_enhancements=humor_suggestions # Передаем объект HumorEnhancementList для контекста юмора
+            )
+            episode_plot.final_text = final_episode_text # Сохраняем финальный текст в объекте эпизода
+            self.scenario_data.episodes.append(episode_plot) # Добавляем эпизод в список после его финализации
+
+        # # 7. Финальное оформление
+        # self.scenario_data.title = initial_idea + " - Сёнэн История"
+        # logline = f"Эпическая история о мире где используется {self.scenario_data.magic_system.name}"
+        # logline += " ".join([f"Где есть герой {c.name}, который стремится к {c.motivation}." for c in  self.scenario_data.characters])
+        # logline += " ".join([f"По ходу сюжета герои сталкиваются с {e.description}." for e in  self.scenario_data.episodes])
+        # self.scenario_data.logline = logline
         
-        final_script_text = self.final_formatter_agent.process(self.scenario_data)
-        self.scenario_data.final_script_text = final_script_text
+        # final_script_text = self.final_formatter_agent.process(self.scenario_data)
+        # self.scenario_data.final_script_text = final_script_text
         
         print("\n--- Генерация сценария завершена ---")
-        return self.scenario_data.final_script_text
+        # return self.scenario_data.final_script_text
 
 # --- Запуск системы ---
 if __name__ == "__main__":
@@ -130,18 +148,18 @@ if __name__ == "__main__":
     # ollama run deepseek-r1:32b # Это нужно запустить вручную в терминале перед стартом скрипта
     print("Инициализация Ollama клиента и ChromaDB. Убедитесь, что Ollama сервер запущен и модель deepseek-r1:32b загружена.")
     
-    orchestrator = ScenarioOrchestrator(model="deepseek-r1:7b")
+    orchestrator = ScenarioOrchestrator(model="deepseek-r1:32b")
     
     # Задаем начальный вектор сюжета
-    initial_story_idea = "История о молодом парне, который хочет стать сильнейшим охотником на демонов, чтобы отомстить за свою семью, но обнаруживает, что демоны не всегда такие, какими кажутся."
-    
+    initial_story_idea = "История о молодом парне, в средневековой русской деревне 12 века. В лесу рядом с деревней падает метеор (неопознаный технический артефакт инопланетной цивилизации). Отец героя уходит в лес разведать что случилось и пропадает. Мать запрещает герою ходить к лесу. Спусля 3 года герой уходит в центр леса что бы найти отца. За ним увязывается девушку. Вскоре мутанты похищают её и уносят к центру леса. Многие животрые мутировали под воздействием артефакта или ведут себя странно. Часть из них теперь может говорить по человечески. Герой помогает говорящему коту и волку. За это они становятся ег компаньонами. Где то в лесу наблюдатся временные аномалии. Главного героя приследует 'тень' на пути в центру леса, которую он воспринимает враждебно. После спасения девушки, герой попадает в аномалию. Время для главного героя начинает течь в обратном направлении. Он понимает что Тень это его отец, который помогал ему. Что бы вернуться в нормальное течение времени Тень Отце и сын объединяют силы. Девушка, кот и волк помогут герою выбраться из обратного течения времени нормального течения времени и вернуться домой."
+
     # Генерируем 3 эпизода для примера
-    final_scenario = orchestrator.generate_full_scenario(initial_story_idea, num_episodes=2)
+    final_scenario = orchestrator.generate_full_scenario(initial_story_idea, num_episodes=15)
     
-    print("\n--- Итоговый сгенерированный сценарий ---")
-    print(final_scenario)
+    # print("\n--- Итоговый сгенерированный сценарий ---")
+    # print(final_scenario)
     
     # Можно сохранить в файл
-    with open("shonen_scenario.txt", "w", encoding="utf-8") as f:
-        f.write(final_scenario)
-    print("\nСценарий сохранен в файл shonen_scenario.txt")
+    # with open("shonen_scenario.txt", "w", encoding="utf-8") as f:
+    #     f.write(final_scenario)
+    # print("\nСценарий сохранен в файл shonen_scenario.txt")

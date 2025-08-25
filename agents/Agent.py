@@ -26,8 +26,8 @@ class Agent:
 
         prompt_parts.append(f"[ЗАДАЧА/ИНСТРУКЦИИ]\n{task_description}")
         prompt_parts.append("[ФОРМАТ ОТВЕТА]\nОтвет должен быть на русском языке.")
-        if format_schema:
-            prompt_parts.append(f"Ответ должен быть строго в формате JSON, соответствующем Pydantic схеме.")
+        # if format_schema:
+        #     prompt_parts.append(f"Ответ должен быть строго в формате JSON, соответствующем Pydantic схеме {format_schema}.")
 
         prompt_parts.append("[ОГРАНИЧЕНИЯ]\nБудь лаконичен и сфокусирован на задаче. Не выходи за рамки заданной роли.")
 

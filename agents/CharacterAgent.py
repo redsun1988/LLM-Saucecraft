@@ -2,6 +2,7 @@ from agents.Agent import Agent
 from typing import Any, Optional
 from data.CharacterProfile import CharacterProfile
 from data.CharactersList import CharactersList
+from data.MagicSystemDetails import MagicSystemDetails
 from data.EpisodePlotOutline import EpisodePlotOutline
 from managers.ChromaDBManager import ChromaDBManager
 from managers.OllamaClient import OllamaClient
@@ -17,14 +18,16 @@ class CharacterAgent(Agent):
         super().__init__("Агент персонажей", "Психолог и создатель глубоких, не плоских персонажей для сёнэн-манги. Умело использует гендерные темы и прорабатывает арки развития.", ollama_client)
         self.chroma_db = chromadb_manager
 
-    def process(self, plot_outline: List[EpisodePlotOutline], initial_idea: str, num_characters: int = 3) -> List[CharacterProfile]:
+    def process(self, plot_outline: List[EpisodePlotOutline], initial_idea: str, magicSystem: MagicSystemDetails, num_characters: int = 3) -> List[CharacterProfile]:
         """Генерирует новых персонажей или развивает существующих."""
         print(f"\n[{self.name}]: Генерирую персонажей...")
         inspiration = self.chroma_db.query("Сёнэн персонажи, развитие характера, гендерные темы")[0]
-
+        # 
         task = (
             f"Создай {num_characters} интересных и не плоских персонажей для сёнэн-манги, соответствующих текущему сюжету. "
             f"Начальная идея: '{initial_idea}'. "
+            f"Мистическая система этого мира: {magicSystem.core_concept}. "
+            f"Мистическая система этого мира: {magicSystem.connection_to_plot}. "
             f"Текущий сюжет: {json.dumps([ep.dict() for ep in plot_outline], ensure_ascii=False, indent=2)}. "
             "Для каждого персонажа укажи имя, роль, описание (внешность и характер), мотивацию и потенциал для арки развития. "
             "Особое внимание удели раскрытию характера, избегай 'плоскости'. "
