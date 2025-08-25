@@ -64,7 +64,7 @@ class ScenarioOrchestrator:
         for i in range(num_episodes):
             print(f"\n--- Генерируем Эпизод {i+1} ---")
             # 1. Сюжет
-            episode_plot = self.plot_generator.process(self.scenario_data.chief_editor_vector, self.scenario_data.magic_system, i, self.scenario_data.episodes)
+            episode_plot = self.plot_generator.process(self.scenario_data.chief_editor_vector, self.scenario_data.magic_system, self.scenario_data.characters, i, self.scenario_data.episodes)
 
             # 2. Сюжетный твист (возможно)
             current_twist = None

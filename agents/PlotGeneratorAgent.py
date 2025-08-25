@@ -1,4 +1,5 @@
 from agents.Agent import Agent
+from data.CharacterProfile import CharacterProfile
 from data.MagicSystemDetails import MagicSystemDetails
 from data.EpisodePlotOutline import EpisodePlotOutline, FinalEpisodePlotResponce
 from managers.ChromaDBManager import ChromaDBManager
@@ -33,7 +34,7 @@ class PlotGeneratorAgent(Agent):
         }
         self.propp_sequence = list(self.propp_functions.keys())
 
-    def process(self, chief_editor_vector: str, magicSystem: MagicSystemDetails, current_episode_idx: int, existing_plot: List[EpisodePlotOutline]) -> EpisodePlotOutline:
+    def process(self, chief_editor_vector: str, magicSystem: MagicSystemDetails, characters: List[CharacterProfile], current_episode_idx: int, existing_plot: List[EpisodePlotOutline]) -> EpisodePlotOutline:
         """Генерирует следующий шаг сюжета по Проппу."""
         print(f"\n[{self.name}]: Генерирую следующий эпизод...")
         next_propp_function = self.propp_sequence[current_episode_idx % len(self.propp_sequence)]
@@ -45,11 +46,11 @@ class PlotGeneratorAgent(Agent):
             f"Мистическая система этого мира: {magicSystem.connection_to_plot}. "
             f"Правила мистической системы: {json.dumps([r.dict() for r in magicSystem.rules])}. "
             f"Ограничения мистической системы: {json.dumps([l.dict() for l in magicSystem.limitations])}. "
-            f"Персонажи в этой истории это: {}. "
+            f"Персонажи в этой истории это: {json.dumps([c.dict() for c in characters])}. "
             f"Предыдущие эпизоды сюжета: {' '.join([ep.final_text for ep in existing_plot[-2:]]) if existing_plot else chief_editor_vector}\n"
             f"Текущая функция Проппа для этого эпизода: '{next_propp_function}'. "
             f"Её определение: {self.propp_functions[next_propp_function]}. "
-            "Описание события должно быть на русском языке. Если оно на другом языке, переведи на русский. Не используй всех персонажей стразу. Вводи в сюжет их постепенно. Убедись, что оно соответствует духу сёнэна: дружба, преодоление, рост героя. Расслабься и не спеши"
+            "Описание события должно быть на русском языке. Если оно на другом языке, переведи на русский. Используй информацию о персонажах. Добавляй персонажей по мере необходимости. Вводи в сюжет их постепенно. Убедись, что оно соответствует духу сёнэна: дружба, преодоление, рост героя. Расслабься и не спеши"
         )
         prompt = self.generate_prompt(
             task_description=task,
