@@ -54,6 +54,7 @@ class ScenarioOrchestrator:
         self.scenario_data.chief_editor_vector = self.chief_editor.process(initial_idea)
         
         # Генерируем магическую систему
+        # MagicSystemDetails
         self.scenario_data.magic_system = self.magic_system_agent.process(self.scenario_data.episodes, self.scenario_data.chief_editor_vector)
         
         # Генерируем персонажей
