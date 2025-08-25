@@ -8,4 +8,5 @@ class CharacterProfile(BaseModel):
     description: str = Field(description="Краткое описание внешности и характера персонажа.")
     motivation: str = Field(description="Главная мотивация персонажа.")
     arc_potential: str = Field(description="Потенциал для развития характера или сюжетной арки.")
+    moral_choice: str = Field(description="Моральная дилема которая стоит перед персонажем.")
     gender_themes_usage: Optional[str] = Field(None, description="Как в персонаже раскрываются или обыгрываются гендерные темы (если применимо).")

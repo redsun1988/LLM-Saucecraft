@@ -45,6 +45,7 @@ class PlotGeneratorAgent(Agent):
             f"Мистическая система этого мира: {magicSystem.connection_to_plot}. "
             f"Правила мистической системы: {json.dumps([r.dict() for r in magicSystem.rules])}. "
             f"Ограничения мистической системы: {json.dumps([l.dict() for l in magicSystem.limitations])}. "
+            f"Персонажи в этой истории это: {}. "
             f"Предыдущие эпизоды сюжета: {' '.join([ep.final_text for ep in existing_plot[-2:]]) if existing_plot else chief_editor_vector}\n"
             f"Текущая функция Проппа для этого эпизода: '{next_propp_function}'. "
             f"Её определение: {self.propp_functions[next_propp_function]}. "
